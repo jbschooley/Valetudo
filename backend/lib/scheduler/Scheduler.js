@@ -1,5 +1,6 @@
 const Logger = require("../Logger");
 const Tools = require("../utils/Tools");
+const ValetudoCapabilitySettingTimerPreAction = require("./pre_actions/ValetudoCapabilitySettingTimerPreAction");
 const ValetudoFanSpeedControlTimerPreAction = require("./pre_actions/ValetudoFanSpeedControlTimerPreAction");
 const ValetudoFullCleanupTimerAction = require("./actions/ValetudoFullCleanupTimerAction");
 const ValetudoNTPClientSyncedState = require("../entities/core/ntpClient/ValetudoNTPClientSyncedState");
@@ -145,6 +146,13 @@ class Scheduler {
                     case ValetudoTimer.PRE_ACTION_TYPE.OPERATION_MODE_CONTROL:
                         preAction = new ValetudoOperationModeControlTimerPreAction({
                             robot: this.robot,
+                            value: timerPreActionDefinition.params.value
+                        });
+                        break;
+                    case ValetudoTimer.PRE_ACTION_TYPE.CAPABILITY_SETTING:
+                        preAction = new ValetudoCapabilitySettingTimerPreAction({
+                            robot: this.robot,
+                            capabilityType: timerPreActionDefinition.params.capability,
                             value: timerPreActionDefinition.params.value
                         });
                         break;

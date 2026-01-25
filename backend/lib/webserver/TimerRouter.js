@@ -61,6 +61,9 @@ class TimerRouter {
                 response.supportedPreActions.push(ValetudoTimer.PRE_ACTION_TYPE.OPERATION_MODE_CONTROL);
             }
 
+            // capability_setting works with any capability dynamically
+            response.supportedPreActions.push(ValetudoTimer.PRE_ACTION_TYPE.CAPABILITY_SETTING);
+
             res.json(response);
         });
 
@@ -249,6 +252,15 @@ class TimerRouter {
                         preActions.push({
                             type: ValetudoTimer.PRE_ACTION_TYPE.OPERATION_MODE_CONTROL,
                             params: {
+                                value: preActionFromBody.params.value
+                            }
+                        });
+                        break;
+                    case ValetudoTimer.PRE_ACTION_TYPE.CAPABILITY_SETTING:
+                        preActions.push({
+                            type: ValetudoTimer.PRE_ACTION_TYPE.CAPABILITY_SETTING,
+                            params: {
+                                capability: preActionFromBody.params.capability,
                                 value: preActionFromBody.params.value
                             }
                         });

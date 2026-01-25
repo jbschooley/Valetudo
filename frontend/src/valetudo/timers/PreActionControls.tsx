@@ -9,6 +9,7 @@ import {
     InputLabel,
     MenuItem,
     Select,
+    TextField,
     Typography
 } from "@mui/material";
 import {Capability, PresetSelectionState, usePresetSelectionsQuery} from "../../api";
@@ -182,5 +183,99 @@ export const OperationModeControlPreActionControl: FunctionComponent<TimerPreAct
             capability={Capability.OperationModeControl}
             label={"Set Mode to"}
         />
+    );
+};
+
+export const CapabilitySettingPreActionControl: FunctionComponent<TimerPreActionControlProps> = ({
+    wasEnabled,
+    params,
+    setParams
+}) => {
+    const [enabled, setEnabled] = React.useState(wasEnabled);
+
+    // Serialize params to JSON for display
+    const initialJson = React.useMemo(() => {
+        if (params.capability && params.value) {
+            return JSON.stringify({capability: params.capability, value: params.value}, null, 2);
+        }
+        return "";
+    }, [params]);
+
+    const [jsonValue, setJsonValue] = React.useState(initialJson);
+    const [parseError, setParseError] = React.useState<string | null>(null);
+
+    const validateAndUpdate = React.useCallback((json: string, isEnabled: boolean) => {
+        if (!json.trim()) {
+            setParseError(null);
+            setParams(isEnabled, false, {});
+            return;
+        }
+
+        try {
+            const parsed = JSON.parse(json);
+
+            // Validate structure
+            if (typeof parsed !== "object" || !parsed.capability || !parsed.value) {
+                setParseError("Must have 'capability' and 'value' keys");
+                setParams(isEnabled, false, {});
+                return;
+            }
+
+            setParseError(null);
+            setParams(isEnabled, true, parsed);
+        } catch {
+            setParseError("Invalid JSON");
+            setParams(isEnabled, false, {});
+        }
+    }, [setParams]);
+
+    return (
+        <Grid2
+            container
+            direction="column"
+            sx={{
+                padding: "0.5rem"
+            }}
+        >
+            <Grid2>
+                <FormControlLabel
+                    sx={{userSelect: "none"}}
+                    control={
+                        <Checkbox
+                            checked={enabled}
+                            onChange={(e) => {
+                                setEnabled(e.target.checked);
+                                validateAndUpdate(jsonValue, e.target.checked);
+                            }}
+                        />
+                    }
+                    label="Custom Capability Setting"
+                />
+            </Grid2>
+            <Grid2 sx={{marginTop: "0.5rem"}}>
+                <TextField
+                    fullWidth
+                    multiline
+                    minRows={3}
+                    maxRows={10}
+                    label="Capability Setting (JSON)"
+                    placeholder={'{"capability": "CarpetSensorModeControlCapability", "value": {"mode": "lift"}}'}
+                    value={jsonValue}
+                    error={!!parseError}
+                    helperText={parseError || 'Format: {"capability": "CapabilityName", "value": {...}}'}
+                    onChange={(e) => {
+                        setJsonValue(e.target.value);
+                        validateAndUpdate(e.target.value, enabled);
+                    }}
+                    sx={{
+                        fontFamily: "monospace",
+                        "& .MuiInputBase-input": {
+                            fontFamily: "monospace",
+                            fontSize: "0.875rem"
+                        }
+                    }}
+                />
+            </Grid2>
+        </Grid2>
     );
 };

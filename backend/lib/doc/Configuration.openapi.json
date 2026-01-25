@@ -475,15 +475,25 @@
                   "enum": [
                     "fan_speed_control",
                     "water_usage_control",
-                    "operation_mode_control"
+                    "operation_mode_control",
+                    "capability_setting"
                   ]
                 },
                 "params": {
                   "type": "object",
-                  "additionalProperties": false,
+                  "description": "For fan_speed_control, water_usage_control, operation_mode_control: {value: string}. For capability_setting: {capability: string, value: object}",
+                  "additionalProperties": true,
                   "properties": {
                     "value": {
-                      "type": "string"
+                      "description": "For preset controls (fan, water, mode) this is a string. For capability_setting this is an object with capability-specific params.",
+                      "oneOf": [
+                        {"type": "string"},
+                        {"type": "object"}
+                      ]
+                    },
+                    "capability": {
+                      "type": "string",
+                      "description": "The capability type for capability_setting pre-actions"
                     }
                   }
                 }

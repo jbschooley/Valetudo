@@ -253,7 +253,8 @@
                       "enum": [
                         "fan_speed_control",
                         "water_usage_control",
-                        "operation_mode_control"
+                        "operation_mode_control",
+                        "capability_setting"
                       ]
                     }
                   }

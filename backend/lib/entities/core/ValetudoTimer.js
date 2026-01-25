@@ -67,7 +67,8 @@ ValetudoTimer.ACTION_TYPE = Object.freeze({
 ValetudoTimer.PRE_ACTION_TYPE = Object.freeze({
     FAN_SPEED_CONTROL: "fan_speed_control",
     WATER_USAGE_CONTROL: "water_usage_control",
-    OPERATION_MODE_CONTROL: "operation_mode_control"
+    OPERATION_MODE_CONTROL: "operation_mode_control",
+    CAPABILITY_SETTING: "capability_setting"
 });
 
 /**

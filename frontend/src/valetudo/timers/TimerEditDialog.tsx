@@ -32,6 +32,7 @@ import {
     validateParams,
 } from "./ActionControls";
 import {
+    CapabilitySettingPreActionControl,
     FanSpeedControlPreActionControl,
     OperationModeControlPreActionControl,
     WaterUsageControlPreActionControl
@@ -52,6 +53,7 @@ const preActionControls: Record<
     [ValetudoTimerPreActionType.FAN_SPEED_CONTROL]: FanSpeedControlPreActionControl,
     [ValetudoTimerPreActionType.WATER_USAGE_CONTROL]: WaterUsageControlPreActionControl,
     [ValetudoTimerPreActionType.OPERATION_MODE_CONTROL]: OperationModeControlPreActionControl,
+    [ValetudoTimerPreActionType.CAPABILITY_SETTING]: CapabilitySettingPreActionControl,
 };
 
 type TimerDialogProps = {
@@ -272,13 +274,16 @@ const TimerEditDialog: FunctionComponent<TimerDialogProps> = ({
 
                         {timerProperties.supportedPreActions.map(preActionType => {
                             const PreActionControl = preActionControls[preActionType];
+                            if (!PreActionControl) {
+                                return null;
+                            }
                             const existingPreAction = editTimer.pre_actions?.find(action => action.type === preActionType);
 
                             return (
                                 <PreActionControl
                                     key={preActionType}
                                     wasEnabled={existingPreAction !== undefined}
-                                    params={existingPreAction?.params ?? {type: preActionType, params: {}}}
+                                    params={existingPreAction?.params ?? {}}
                                     setParams={(enabled, hasParams, params) => {
                                         editTimer.pre_actions = Array.isArray(editTimer.pre_actions) ? editTimer.pre_actions : [];
                                         editTimer.pre_actions = editTimer.pre_actions.filter(e => e.type !== preActionType);

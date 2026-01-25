@@ -234,7 +234,8 @@ export enum ValetudoTimerActionType {
 export enum ValetudoTimerPreActionType {
     FAN_SPEED_CONTROL = "fan_speed_control",
     WATER_USAGE_CONTROL = "water_usage_control",
-    OPERATION_MODE_CONTROL = "operation_mode_control"
+    OPERATION_MODE_CONTROL = "operation_mode_control",
+    CAPABILITY_SETTING = "capability_setting"
 }
 
 export interface Timer {
@@ -260,7 +261,7 @@ export interface TimerInformation {
 
 export interface TimerProperties {
     supportedActions: Array<ValetudoTimerActionType>;
-    supportedPreActions: Array<ValetudoTimerPreActionType>
+    supportedPreActions: Array<ValetudoTimerPreActionType>;
 }
 
 export interface MQTTConfiguration {
