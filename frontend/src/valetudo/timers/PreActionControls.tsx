@@ -194,9 +194,13 @@ export const CapabilitySettingPreActionControl: FunctionComponent<TimerPreAction
     const [enabled, setEnabled] = React.useState(wasEnabled);
 
     // Serialize params to JSON for display
+    // Handle both single object and array of objects
     const initialJson = React.useMemo(() => {
-        if (params.capability && params.value) {
-            return JSON.stringify({capability: params.capability, value: params.value}, null, 2);
+        if (Array.isArray(params.capabilities)) {
+            return JSON.stringify(params.capabilities, null, 2);
+        } else if (params.capability && params.value) {
+            // Backward compatibility: single object
+            return JSON.stringify([{capability: params.capability, value: params.value}], null, 2);
         }
         return "";
     }, [params]);
@@ -214,15 +218,30 @@ export const CapabilitySettingPreActionControl: FunctionComponent<TimerPreAction
         try {
             const parsed = JSON.parse(json);
 
-            // Validate structure
-            if (typeof parsed !== "object" || !parsed.capability || !parsed.value) {
-                setParseError("Must have 'capability' and 'value' keys");
+            // Validate structure - must be an array of capability settings
+            if (!Array.isArray(parsed)) {
+                setParseError("Must be a JSON array of capability settings");
                 setParams(isEnabled, false, {});
                 return;
             }
 
+            if (parsed.length === 0) {
+                setParseError("Array must contain at least one capability setting");
+                setParams(isEnabled, false, {});
+                return;
+            }
+
+            // Validate each item in array
+            for (const item of parsed) {
+                if (typeof item !== "object" || !item.capability || !item.value) {
+                    setParseError("Each item must have 'capability' and 'value' keys");
+                    setParams(isEnabled, false, {});
+                    return;
+                }
+            }
+
             setParseError(null);
-            setParams(isEnabled, true, parsed);
+            setParams(isEnabled, true, {capabilities: parsed});
         } catch {
             setParseError("Invalid JSON");
             setParams(isEnabled, false, {});
@@ -249,7 +268,7 @@ export const CapabilitySettingPreActionControl: FunctionComponent<TimerPreAction
                             }}
                         />
                     }
-                    label="Custom Capability Setting"
+                    label="Custom Capability Settings"
                 />
             </Grid2>
             <Grid2 sx={{marginTop: "0.5rem"}}>
@@ -258,11 +277,14 @@ export const CapabilitySettingPreActionControl: FunctionComponent<TimerPreAction
                     multiline
                     minRows={3}
                     maxRows={10}
-                    label="Capability Setting (JSON)"
-                    placeholder={'{"capability": "CarpetSensorModeControlCapability", "value": {"mode": "lift"}}'}
+                    label="Capability Settings (JSON)"
+                    placeholder={`[
+  {"capability": "CarpetSensorModeControlCapability", "value": {"mode": "lift"}},
+  {"capability": "DoNotDisturbCapability", "value": {"action": "enable"}}
+]`}
                     value={jsonValue}
                     error={!!parseError}
-                    helperText={parseError || 'Format: {"capability": "CapabilityName", "value": {...}}'}
+                    helperText={parseError || 'Array of objects with "capability" and "value" keys'}
                     onChange={(e) => {
                         setJsonValue(e.target.value);
                         validateAndUpdate(e.target.value, enabled);
