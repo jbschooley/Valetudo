@@ -18,19 +18,21 @@ import {presetFriendlyNames, sortPresets} from "../../presetUtils";
 
 const PresetSelectionPreActionControl: FunctionComponent<{
     wasEnabled: boolean,
-    params: Record<string, unknown>,
-    setParams(valid: boolean, hasParams: boolean, newParams: Record<string, unknown>): void,
+    params: Record<string, unknown> | Array<Record<string, unknown>>,
+    setParams(valid: boolean, hasParams: boolean, newParams: Record<string, unknown> | Array<Record<string, unknown>>): void,
 
     capability: Capability.FanSpeedControl | Capability.WaterUsageControl | Capability.OperationModeControl,
     label: string
 }> = ({
     wasEnabled,
-    params,
+    params: rawParams,
     setParams,
 
     capability,
     label
 }) => {
+    // These preset controls only use single objects, so extract from array if needed
+    const params = Array.isArray(rawParams) ? (rawParams[0] ?? {}) : rawParams;
     const [enabled, setEnabled] = React.useState(wasEnabled);
     const [selectedPreset, setSelectedPreset] = React.useState<string>(params.value as string ?? "");
 
@@ -291,7 +293,7 @@ export const CapabilitySettingPreActionControl: FunctionComponent<TimerPreAction
 ]`}
                     value={jsonValue}
                     error={!!parseError}
-                    helperText={parseError || 'Format: Array of capability settings with type, params, capability and value'}
+                    helperText={parseError || "Format: Array of capability settings with type, params, capability and value"}
                     onChange={(e) => {
                         setJsonValue(e.target.value);
                         validateAndUpdate(e.target.value, enabled);

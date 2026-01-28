@@ -76,8 +76,9 @@ ValetudoTimer.PRE_ACTION_TYPE = Object.freeze({
  *
  * @property {ValetudoTimerPreActionType} type
  * @property {object} params
- * @property {string} params.value
- * 
+ * @property {string} [params.value]
+ * @property {string} [params.capability]
+ *
  */
 
 module.exports = ValetudoTimer;

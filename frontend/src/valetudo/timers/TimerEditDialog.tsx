@@ -277,28 +277,36 @@ const TimerEditDialog: FunctionComponent<TimerDialogProps> = ({
                             if (!PreActionControl) {
                                 return null;
                             }
-                            const existingPreAction = editTimer.pre_actions?.find(action => action.type === preActionType);
+
+                            // For capability_setting, we need all matching pre_actions as an array
+                            // For other types, we just need the first (and only) match
+                            const isCapabilitySetting = preActionType === ValetudoTimerPreActionType.CAPABILITY_SETTING;
+                            const existingPreActions = editTimer.pre_actions?.filter(action => action.type === preActionType) ?? [];
+                            const hasExisting = existingPreActions.length > 0;
+
+                            // For capability_setting, pass all matching pre_actions; for others, pass single params
+                            const params = isCapabilitySetting ?
+                                existingPreActions :
+                                (existingPreActions[0]?.params ?? {});
 
                             return (
                                 <PreActionControl
                                     key={preActionType}
-                                    wasEnabled={existingPreAction !== undefined}
-                                    params={existingPreAction?.params ?? {}}
+                                    wasEnabled={hasExisting}
+                                    params={params}
                                     setParams={(enabled, hasParams, params) => {
-                                        editTimer.pre_actions = Array.isArray(editTimer.pre_actions) ? editTimer.pre_actions : [];
-                                        editTimer.pre_actions = editTimer.pre_actions.filter(e => e.type !== preActionType);
+                                        const preActions = Array.isArray(editTimer.pre_actions) ? editTimer.pre_actions : [];
+                                        editTimer.pre_actions = preActions.filter(e => e.type !== preActionType);
 
                                         if (enabled && hasParams) {
-                                            // If the params is an array of capability settings, we need to create separate pre_action entries
+                                            // If params is an array (capability_setting), items are full pre_action objects
+                                            // Otherwise, params is a single object to wrap
                                             if (Array.isArray(params)) {
                                                 params.forEach(setting => {
-                                                    editTimer.pre_actions.push({
-                                                        type: preActionType,
-                                                        params: setting
-                                                    });
+                                                    editTimer.pre_actions!.push(setting as Timer["pre_actions"] extends Array<infer T> ? T : never);
                                                 });
                                             } else {
-                                                editTimer.pre_actions.push({
+                                                editTimer.pre_actions!.push({
                                                     type: preActionType,
                                                     params: params
                                                 });
