@@ -193,10 +193,11 @@ export const CapabilitySettingPreActionControl: FunctionComponent<TimerPreAction
 }) => {
     const [enabled, setEnabled] = React.useState(wasEnabled);
 
-    // Serialize params to JSON for display
+    // Serialize params to JSON for display - but now we expect an array of capability settings
     const initialJson = React.useMemo(() => {
-        if (params.capability && params.value) {
-            return JSON.stringify({capability: params.capability, value: params.value}, null, 2);
+        if (Array.isArray(params)) {
+            // If it's already an array of capability settings
+            return JSON.stringify(params, null, 2);
         }
         return "";
     }, [params]);
@@ -207,25 +208,34 @@ export const CapabilitySettingPreActionControl: FunctionComponent<TimerPreAction
     const validateAndUpdate = React.useCallback((json: string, isEnabled: boolean) => {
         if (!json.trim()) {
             setParseError(null);
-            setParams(isEnabled, false, {});
+            setParams(isEnabled, false, []);
             return;
         }
 
         try {
             const parsed = JSON.parse(json);
 
-            // Validate structure
-            if (typeof parsed !== "object" || !parsed.capability || !parsed.value) {
-                setParseError("Must have 'capability' and 'value' keys");
-                setParams(isEnabled, false, {});
+            // Validate structure - must be an array of objects
+            if (!Array.isArray(parsed)) {
+                setParseError("Must be a JSON array of capability settings");
+                setParams(isEnabled, false, []);
                 return;
+            }
+
+            // Validate each setting in the array
+            for (const setting of parsed) {
+                if (typeof setting !== "object" || !setting.params || !setting.params.capability || !setting.params.value) {
+                    setParseError("Each item must have 'params' with 'capability' and 'value' keys");
+                    setParams(isEnabled, false, []);
+                    return;
+                }
             }
 
             setParseError(null);
             setParams(isEnabled, true, parsed);
         } catch {
             setParseError("Invalid JSON");
-            setParams(isEnabled, false, {});
+            setParams(isEnabled, false, []);
         }
     }, [setParams]);
 
@@ -249,7 +259,7 @@ export const CapabilitySettingPreActionControl: FunctionComponent<TimerPreAction
                             }}
                         />
                     }
-                    label="Custom Capability Setting"
+                    label="Custom Capability Settings (JSON Array)"
                 />
             </Grid2>
             <Grid2 sx={{marginTop: "0.5rem"}}>
@@ -258,11 +268,30 @@ export const CapabilitySettingPreActionControl: FunctionComponent<TimerPreAction
                     multiline
                     minRows={3}
                     maxRows={10}
-                    label="Capability Setting (JSON)"
-                    placeholder={'{"capability": "CarpetSensorModeControlCapability", "value": {"mode": "lift"}}'}
+                    label="Capability Settings (JSON Array)"
+                    placeholder={`[
+    {
+        "type": "capability_setting",
+        "params": {
+            "capability": "CarpetSensorModeControlCapability",
+            "value": {
+                "mode": "lift"
+            }
+        }
+    },
+    {
+        "type": "capability_setting",
+        "params": {
+            "capability": "MopTwistControlCapability",
+            "value": {
+                "action": "disable"
+            }
+        }
+    }
+]`}
                     value={jsonValue}
                     error={!!parseError}
-                    helperText={parseError || 'Format: {"capability": "CapabilityName", "value": {...}}'}
+                    helperText={parseError || 'Format: Array of capability settings with type, params, capability and value'}
                     onChange={(e) => {
                         setJsonValue(e.target.value);
                         validateAndUpdate(e.target.value, enabled);

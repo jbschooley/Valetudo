@@ -6,6 +6,6 @@ export interface TimerActionControlProps {
 
 export interface TimerPreActionControlProps {
     wasEnabled: boolean;
-    params: Record<string, unknown>;
-    setParams(valid: boolean, hasParams: boolean, newParams: Record<string, unknown>): void;
+    params: Array<Record<string, unknown>>;
+    setParams(valid: boolean, hasParams: boolean, newParams: Array<Record<string, unknown>>): void;
 }

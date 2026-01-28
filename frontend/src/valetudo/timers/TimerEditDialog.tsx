@@ -289,10 +289,20 @@ const TimerEditDialog: FunctionComponent<TimerDialogProps> = ({
                                         editTimer.pre_actions = editTimer.pre_actions.filter(e => e.type !== preActionType);
 
                                         if (enabled && hasParams) {
-                                            editTimer.pre_actions.push({
-                                                type: preActionType,
-                                                params: params
-                                            });
+                                            // If the params is an array of capability settings, we need to create separate pre_action entries
+                                            if (Array.isArray(params)) {
+                                                params.forEach(setting => {
+                                                    editTimer.pre_actions.push({
+                                                        type: preActionType,
+                                                        params: setting
+                                                    });
+                                                });
+                                            } else {
+                                                editTimer.pre_actions.push({
+                                                    type: preActionType,
+                                                    params: params
+                                                });
+                                            }
                                         }
                                     }}
                                 />
