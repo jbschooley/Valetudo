@@ -38,6 +38,13 @@ class Scheduler {
         const hasBuildTimestamp = Tools.GET_BUILD_TIMESTAMP() > new Date(-1);
         const timeIsPlausible = Tools.GET_BUILD_TIMESTAMP() < new Date();
 
+        Logger.debug("Scheduler state", {
+            NTPClientStateIsValid: NTPClientStateIsValid,
+            hasBuildTimestamp: hasBuildTimestamp,
+            timeIsPlausible: timeIsPlausible,
+            buildTimestamp: Tools.GET_BUILD_TIMESTAMP().toISOString()
+        });
+
         let shouldEvaluateTimers;
         if (isEmbedded) {
             shouldEvaluateTimers = NTPClientStateIsValid || (hasBuildTimestamp && timeIsPlausible);
