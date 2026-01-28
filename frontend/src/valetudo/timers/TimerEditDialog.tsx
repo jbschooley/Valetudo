@@ -277,22 +277,50 @@ const TimerEditDialog: FunctionComponent<TimerDialogProps> = ({
                             if (!PreActionControl) {
                                 return null;
                             }
-                            const existingPreAction = editTimer.pre_actions?.find(action => action.type === preActionType);
+
+                            // For capability_setting, collect all matching pre-actions into settings array
+                            let existingParams: Record<string, unknown> = {};
+                            let wasEnabled = false;
+                            if (preActionType === ValetudoTimerPreActionType.CAPABILITY_SETTING) {
+                                const allCapabilitySettings = editTimer.pre_actions?.filter(
+                                    action => action.type === preActionType
+                                ) ?? [];
+                                wasEnabled = allCapabilitySettings.length > 0;
+                                if (wasEnabled) {
+                                    existingParams = {
+                                        settings: allCapabilitySettings.map(a => a.params)
+                                    };
+                                }
+                            } else {
+                                const existingPreAction = editTimer.pre_actions?.find(action => action.type === preActionType);
+                                wasEnabled = existingPreAction !== undefined;
+                                existingParams = existingPreAction?.params ?? {};
+                            }
 
                             return (
                                 <PreActionControl
                                     key={preActionType}
-                                    wasEnabled={existingPreAction !== undefined}
-                                    params={existingPreAction?.params ?? {}}
+                                    wasEnabled={wasEnabled}
+                                    params={existingParams}
                                     setParams={(enabled, hasParams, params) => {
                                         editTimer.pre_actions = Array.isArray(editTimer.pre_actions) ? editTimer.pre_actions : [];
                                         editTimer.pre_actions = editTimer.pre_actions.filter(e => e.type !== preActionType);
 
                                         if (enabled && hasParams) {
-                                            editTimer.pre_actions.push({
-                                                type: preActionType,
-                                                params: params
-                                            });
+                                            // For capability_setting, unpack settings array into multiple pre-actions
+                                            if (preActionType === ValetudoTimerPreActionType.CAPABILITY_SETTING && params.settings) {
+                                                for (const setting of params.settings as Array<Record<string, unknown>>) {
+                                                    editTimer.pre_actions.push({
+                                                        type: preActionType,
+                                                        params: setting
+                                                    });
+                                                }
+                                            } else {
+                                                editTimer.pre_actions.push({
+                                                    type: preActionType,
+                                                    params: params
+                                                });
+                                            }
                                         }
                                     }}
                                 />
